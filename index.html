@@ -171,6 +171,46 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
         }
+
+        /* 移动端控制按钮 */
+        #mobile-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            pointer-events: auto;
+        }
+
+        #mobile-controls button {
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+            background: rgba(74, 158, 255, 0.3);
+            border: 2px solid rgba(74, 158, 255, 0.6);
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #mobile-controls button:active,
+        #mobile-controls button.active {
+            background: rgba(74, 158, 255, 0.6);
+            transform: scale(0.95);
+        }
+
+        #btn-left {
+            margin-left: 20px;
+        }
+
+        #btn-right {
+            margin-right: 20px;
+        }
     </style>
 </head>
 <body>
@@ -198,6 +238,11 @@
                 <h2>💥 游戏结束</h2>
                 <p>最终分数：<span id="final-score">0</span></p>
                 <button id="restart-btn">再来一次</button>
+            </div>
+            <!-- 屏幕控制按钮 -->
+            <div id="mobile-controls">
+                <button id="btn-left">◀</button>
+                <button id="btn-right">▶</button>
             </div>
         </div>
     </div>
@@ -238,21 +283,46 @@
         let lastShot = 0;
         const shootDelay = 200; // 射击间隔 (ms)
         
-        // 事件监听
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
-            if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+        // 事件监听 - 绑定到 canvas 和 document
+        function handleKeyDown(e) {
+            console.log('Key down:', e.key);
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                keys.left = true;
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                keys.right = true;
+                e.preventDefault();
+            }
             if (e.key === ' ') {
                 keys.space = true;
                 e.preventDefault();
             }
-        });
+        }
         
-        document.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
-            if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
-            if (e.key === ' ') keys.space = false;
-        });
+        function handleKeyUp(e) {
+            console.log('Key up:', e.key);
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                keys.left = false;
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                keys.right = false;
+                e.preventDefault();
+            }
+            if (e.key === ' ') {
+                keys.space = false;
+                e.preventDefault();
+            }
+        }
+        
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+        
+        // 确保 canvas 可以接收焦点
+        canvas.setAttribute('tabindex', '0');
+        canvas.addEventListener('keydown', handleKeyDown);
+        canvas.addEventListener('keyup', handleKeyUp);
         
         // 触摸/鼠标控制
         canvas.addEventListener('click', (e) => {
@@ -262,6 +332,52 @@
                 shoot(clickX);
             }
         });
+        
+        // 移动端控制按钮
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        
+        function handleLeftPress(e) {
+            e.preventDefault();
+            keys.left = true;
+            btnLeft.classList.add('active');
+        }
+        
+        function handleLeftRelease(e) {
+            e.preventDefault();
+            keys.left = false;
+            btnLeft.classList.remove('active');
+        }
+        
+        function handleRightPress(e) {
+            e.preventDefault();
+            keys.right = true;
+            btnRight.classList.add('active');
+        }
+        
+        function handleRightRelease(e) {
+            e.preventDefault();
+            keys.right = false;
+            btnRight.classList.remove('active');
+        }
+        
+        // 触摸事件
+        btnLeft.addEventListener('touchstart', handleLeftPress);
+        btnLeft.addEventListener('touchend', handleLeftRelease);
+        btnLeft.addEventListener('touchcancel', handleLeftRelease);
+        
+        btnRight.addEventListener('touchstart', handleRightPress);
+        btnRight.addEventListener('touchend', handleRightRelease);
+        btnRight.addEventListener('touchcancel', handleRightRelease);
+        
+        // 鼠标事件
+        btnLeft.addEventListener('mousedown', handleLeftPress);
+        btnLeft.addEventListener('mouseup', handleLeftRelease);
+        btnLeft.addEventListener('mouseleave', handleLeftRelease);
+        
+        btnRight.addEventListener('mousedown', handleRightPress);
+        btnRight.addEventListener('mouseup', handleRightRelease);
+        btnRight.addEventListener('mouseleave', handleRightRelease);
         
         // 按钮事件
         document.getElementById('start-btn').addEventListener('click', startGame);
